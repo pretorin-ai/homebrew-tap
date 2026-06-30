@@ -10,6 +10,9 @@
 # to $HOME or ~/.pretorin. The canonical MCP pin (~/.pretorin/bin/pretorin) is
 # owned by `pretorin link` — see the caveats block.
 #
+# The macOS post_install execs the binary once to pre-warm the OS code-trust
+# cache so your first command is instant (issue #226); it writes nothing.
+#
 # macOS arm64 is provided for completeness; the PUBLIC macOS brew recommendation
 # waits on M10 (final validation of the onedir Homebrew path). Linuxbrew is usable now.
 # macOS = a onedir `.tar.gz` (launcher + _internal/), auto-extracted by brew;
@@ -18,13 +21,13 @@
 class Pretorin < Formula
   desc "Compliance automation CLI and MCP server"
   homepage "https://pretorin.com"
-  version "0.24.2"
+  version "0.25.0"
   license "Apache-2.0"
 
   on_macos do
     on_arm do
-      url "https://github.com/pretorin-ai/homebrew-tap/releases/download/v0.24.2/pretorin-0.24.2-macos-arm64.tar.gz"
-      sha256 "f63e3e7cd04bd5068101e895c756cdff8d5a45cbcbbbb0abae521cc54ff80f7f"
+      url "https://github.com/pretorin-ai/homebrew-tap/releases/download/v0.25.0/pretorin-0.25.0-macos-arm64.tar.gz"
+      sha256 "2d2daf0116e79f5ca4557dac1eaba9fbd5cc93f0e49f4e37ef50ab4ace906464"
     end
     # No Intel macOS binary is built. Fail with a clear, actionable message at
     # formula-eval time instead of an opaque "undefined url" error.
@@ -35,8 +38,8 @@ class Pretorin < Formula
 
   on_linux do
     on_intel do
-      url "https://github.com/pretorin-ai/homebrew-tap/releases/download/v0.24.2/pretorin-0.24.2-linux-x86_64"
-      sha256 "c5f7998de51a79617f391ca7813f44a1e435e6d4c3df95fe5a4b0e3042fdb5ce"
+      url "https://github.com/pretorin-ai/homebrew-tap/releases/download/v0.25.0/pretorin-0.25.0-linux-x86_64"
+      sha256 "59d987b43ce12d03dcc4064a158f9c041cf19b7091f7c1a7c97ead7be93bbc70"
     end
     # No ARM Linux (aarch64) binary is built. Same clear-failure guard.
     on_arm do
@@ -61,6 +64,25 @@ class Pretorin < Formula
       binary = Dir["pretorin-*"].grep_v(/\.(sha256|json|tar|sig|pub|asc)$/).first
       bin.install binary => "pretorin"
     end
+  end
+
+  # macOS runs a one-time, per-code-signature trust evaluation on first launch
+  # (Gatekeeper + amfid dylib validation + an online OCSP revocation check). For the
+  # onedir's bundled dylibs that first-launch eval costs ~8s (steady-state is ~269ms,
+  # §8.3), and it would otherwise land on the customer's FIRST `pretorin` command. Exec
+  # the binary once here — while brew is already working — so the cache is warm before
+  # they ever run it. Homebrew runs post_install on `brew upgrade` too, so a new
+  # version's cdhash gets warmed as well. `--help` is deliberate: it exits before any
+  # version-check/network path, so the warm-up makes no egress of its own — the only
+  # network is the OS OCSP eval we want to warm. Best-effort: quiet_system never raises,
+  # so a sandbox/offline failure can't break the install (the customer just pays the
+  # original one-time lag). macOS-only; Linux has no equivalent trust eval. Execs only —
+  # writes nothing outside the prefix.
+  def post_install
+    return unless OS.mac?
+
+    ohai "Pre-verifying the macOS code signature (one-time) so your first command is instant"
+    quiet_system bin/"pretorin", "--help"
   end
 
   def caveats
