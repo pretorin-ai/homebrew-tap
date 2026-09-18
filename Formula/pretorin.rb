@@ -21,13 +21,13 @@
 class Pretorin < Formula
   desc "Compliance automation CLI and MCP server"
   homepage "https://pretorin.com"
-  version "0.29.10"
+  version "0.29.11"
   license "Apache-2.0"
 
   on_macos do
     on_arm do
-      url "https://github.com/pretorin-ai/homebrew-tap/releases/download/v0.29.10/pretorin-0.29.10-macos-arm64.tar.gz"
-      sha256 "4dc20617f1744d3c5ea608451d6aaba6cdfe01e7eb461754517ce599e2185b3e"
+      url "https://github.com/pretorin-ai/homebrew-tap/releases/download/v0.29.11/pretorin-0.29.11-macos-arm64.tar.gz"
+      sha256 "991857670841e17de5a15bc0bde3b6a0aa1c4cf2a6e72a32d0b3406fa9ca48ea"
     end
     # No Intel macOS binary is built. Fail with a clear, actionable message at
     # formula-eval time instead of an opaque "undefined url" error.
@@ -38,8 +38,8 @@ class Pretorin < Formula
 
   on_linux do
     on_intel do
-      url "https://github.com/pretorin-ai/homebrew-tap/releases/download/v0.29.10/pretorin-0.29.10-linux-x86_64"
-      sha256 "36e27c534af007c361f8dbb1bd66d1057cf6b3b419ab8df105d6f044c62e46b5"
+      url "https://github.com/pretorin-ai/homebrew-tap/releases/download/v0.29.11/pretorin-0.29.11-linux-x86_64"
+      sha256 "74f279fd483dffa84efcff4de67a880e96bc45aedaa80311e68f622f5aac73e8"
     end
     # No ARM Linux (aarch64) binary is built. Same clear-failure guard.
     on_arm do
